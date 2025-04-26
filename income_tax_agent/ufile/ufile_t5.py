@@ -1,3 +1,4 @@
+from typing import Optional
 from income_tax_agent import playwright_helper
 
 
@@ -51,7 +52,7 @@ async def add_t5(name: str) -> str:
     return f"Successfully added T5 slip: {name}"
 
 
-async def update_t5(name: str, title: str, box: str, value: str) -> str:
+async def update_t5(name: str, title: Optional[str] = None, box: Optional[str] = None, value: Optional[str] = None) -> str:
     """
     Update a specific T5 slip by its name.
 
@@ -59,8 +60,8 @@ async def update_t5(name: str, title: str, box: str, value: str) -> str:
 
     Args:
         name: The name of the T5 slip to update (e.g., "T5: BBC")
-        title: The title of the input field to update
-        box: The box number of the input field to update
+        title: The title of the input field to update (at least one of title or box is required)
+        box: The box number of the input field to update (at least one of title or box is required)
         value: The new value to set in the input field
 
     Returns:
@@ -92,22 +93,34 @@ async def update_t5(name: str, title: str, box: str, value: str) -> str:
         # Process each fieldset individually
         for i in range(count):
             fieldset = fieldsets.nth(i)
-            item = {}
 
             # Try to find the title/label
             title_element = fieldset.locator('.int-label').first
             title_text = await title_element.inner_text() if await title_element.count() > 0 else ""
 
+            # Try to find the box number
+            box_element = fieldset.locator('.boxNumberContent').first
+            box_text = await box_element.inner_text() if await box_element.count() > 0 else ""
+
+            # Try to find the input value
+            input_element = fieldset.locator('input[type="text"]').first
+
             # Check if this is the correct fieldset based on title and box number
-            if title_text == title and box in title_text:
-                # Try to find the input value
-                input_element = fieldset.locator('input[type="text"]').first
+            match_title = title is None or title_text == title
+            match_box = box is None or box in box_text
+
+            if match_title and match_box:
+                print(f"Title: {title_text}, Box: {box_text}, Value: {value}")
                 if await input_element.count() > 0:
                     await input_element.fill(value)
-                    return f"Successfully updated T5 slip: {name} - {title} (Box {box})"
+                    # type tab to move focus away
+                    await input_element.press("Tab")
+                    return f"Successfully updated T5 slip: {name} - {title} (Box {box}): {value}"
                 else:
                     return f"Input element not found for T5 slip: {name} - {title} (Box{box})"
-        return f"Fieldset with title '{title}' and box '{box}' not found in T5 slip: {name}."
+
+        all_info = await get_t5_info(name)
+        return f"Fieldset with title '{title}' and box '{box}' not found in T5 slip: {name}. \n All info: {all_info}"
     except Exception as e:
         return f"Error updating T5 slip: {str(e)}"
 
@@ -179,20 +192,11 @@ async def get_t5_info(name: str) -> str | list[dict]:
     if page is None:
         return "Ufile didn't load, please try again"
 
-    # Use text content to find T5 elements instead of filter with lambda
-    # This finds all elements with class 'tocLabel' containing text starting with 'T5:'
-    t5_elements = page.locator('div.tocLabel:has-text("T5: ")')
-    all_t5s = await t5_elements.all()
+    # Find the T5 element with the given name
+    t5_elements = page.locator('div.tocLabel').filter(has_text=name)
+    count = await t5_elements.count()
 
-    t5_found = False
-    for t5 in all_t5s:
-        t5_text = await t5.inner_text()
-        if name in t5_text:
-            await t5.click()
-            t5_found = True
-            break
-
-    if not t5_found:
+    if count == 0:
         return f"T5 slip with name '{name}' not found."
 
     # Give the page a moment to load the T5 content
@@ -241,11 +245,13 @@ if __name__ == "__main__":
     async def main():
         members = await get_all_t5()
         print(members)
-        result = await add_t5("abcd")
-        print(result)
-        result = await get_t5_info("T5: abcd")
-        print(result)
-        result = await remove_t5("T5: abcd")
+        # result = await add_t5("abcd")
+        # print(result)
+        # result = await get_t5_info("T5: abcd")
+        # print(result)
+        # result = await remove_t5("T5: abcd")
+        # print(result)
+        result = await update_t5("T5: abcd", "Box 25 - taxable amount of eligible dividends", "25", "2100")
         print(result)
 
     asyncio.run(main())
