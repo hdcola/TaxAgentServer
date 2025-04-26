@@ -5,7 +5,8 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from google.adk.cli.fast_api import get_fast_api_app
+# from google.adk.cli.fast_api import get_fast_api_app
+from extlib.custom_fast_api import get_my_fast_api_app
 import jwt
 from jwt.exceptions import InvalidTokenError
 from dotenv import load_dotenv
@@ -27,7 +28,7 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_MINUTES = 30  # Token expiration time in minutes
 
 # Call the function to get the FastAPI app instance
-app: FastAPI = get_fast_api_app(
+app: FastAPI = get_my_fast_api_app(
     agent_dir=AGENT_DIR,
     session_db_url=SESSION_DB_URL,
     allow_origins=ALLOWED_ORIGINS,
