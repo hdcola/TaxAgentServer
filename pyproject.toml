@@ -1,0 +1,12 @@
+[project]
+name = "taxagentserver"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "google-adk>=0.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "playwright>=1.51.0",
+    "pyjwt>=2.10.1",
+]
