@@ -92,6 +92,67 @@ async def get_t3_info(name: str) -> str | list[dict]:
 
     return formatted_fields
 
+async def create_new_t3(name: str) -> str:
+    """
+    Create a new T3 slip with the specified name.
+
+    Args:
+        name: The name of the new T3 slip to create (e.g., "TD_Bank")
+
+    Returns:
+        str: A message indicating the result of the operation.
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    await page.get_by_role("button", name="Interest, investment income").first.click()
+    await page.wait_for_timeout(1000)
+    await page.get_by_role("button", name="Add Item. T3 - Trust income").click()
+    await page.wait_for_timeout(1000)
+    await page.get_by_role("textbox", name="Enter Text. This T3 slip was issued by. ").fill(name)
+
+    return f"New T3 slip '{name}' created successfully."
+
+async def remove_t3(name: str)-> str:
+    """
+    Remove a specific T3 slip by its name.
+
+    This function navigates to the specified T3 slip and removes it from the current member.
+    
+    Args:
+        name: The name of the T3 slip to remove (e.g., "T3: BBC")
+
+    Returns:
+        str: A message indicating whether the operation was successful or not 
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    # Find the T3 element with the given name
+    t3_elements = page.locator('div.tocLabel').filter(has_text=name)
+    count = await t3_elements.count()
+
+    if count == 0:
+        return f"T3 slip with name '{name}' not found."
+    
+    try:
+
+        remove_button = page.locator(
+            f'button.tocIconRemove[aria-hidden="false"][aria-label*="{name}"]').first
+        await page.evaluate("""
+            window.originalConfirm = window.confirm; // store the original confirm function, optional
+            window.confirm = function(message) {
+                console.log('Intercepted confirm: "' + message + '". Returning true.');
+                return true; // directly return true to simulate user confirmation
+            };
+        """)
+
+        await remove_button.click()
+        return f"Successfully removed T3 slip: {name}"
+    except Exception as e:
+        return f"Error updating T3 slip: {str(e)}"
 
 if __name__ == "__main__":
     import asyncio
@@ -101,5 +162,7 @@ if __name__ == "__main__":
         print(t3_slips)
         result = await get_t3_info("T3: stanly")
         print(result)
+        newT3 = await create_new_t3("T3: BOC")
+        print(newT3)
 
     asyncio.run(main())
