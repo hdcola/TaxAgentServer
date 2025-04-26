@@ -29,7 +29,7 @@ async def add_t5(name: str) -> str:
     Add a new T5 slip to the current member.
 
     Args:
-        name: The name of the T5 slip to add (e.g., "T5: BBC")
+        name: The name of the T5 slip to add.
 
     Returns:
         str: A message indicating whether the operation was successful or not
