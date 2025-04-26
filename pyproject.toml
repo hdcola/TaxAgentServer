@@ -10,3 +10,10 @@ dependencies = [
     "playwright>=1.51.0",
     "pyjwt>=2.10.1",
 ]
+
+[hd.project.scripts]
+export-requirements = "uv export --no-hashes --format requirements-txt > requirements.txt"
+
+
+[tool.uv]
+package = true

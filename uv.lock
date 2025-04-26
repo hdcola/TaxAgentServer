@@ -1251,7 +1251,7 @@ wheels = [
 [[package]]
 name = "taxagentserver"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "google-adk" },
     { name = "passlib", extra = ["bcrypt"] },
