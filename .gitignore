@@ -175,3 +175,6 @@ cython_debug/
 
 sessions.db
 docs/test.html
+
+*.key.json
+auth.db

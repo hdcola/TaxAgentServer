@@ -5,15 +5,18 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiosqlite>=0.21.0",
+    "firebase-admin>=6.8.0",
     "google-adk>=0.3.0",
     "passlib[bcrypt]>=1.7.4",
     "playwright>=1.51.0",
+    "pydantic[email]>=2.11.3",
     "pyjwt>=2.10.1",
 ]
+
 
 [hd.project.scripts]
 export-requirements = "uv export --no-hashes --format requirements-txt > requirements.txt"
 
-
 [tool.uv]
-package = true
+package = false  # Change from true to false to disable packaging/building
