@@ -111,7 +111,7 @@ async def connect_to_browser(instance_address: str) -> None:
     global _playwright, _browser, _context, _page
 
     if _playwright is None:
-        logger.info("Connecting to existing browser instance")
+        logger.warning("Connecting to existing browser instance")
         _playwright = await async_playwright().start()
         _browser = await _playwright.chromium.connect_over_cdp(instance_address)
         contexts = _browser.contexts

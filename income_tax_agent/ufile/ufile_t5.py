@@ -179,14 +179,15 @@ async def get_t5_info(name: str) -> str | list[dict]:
     if page is None:
         return "Ufile didn't load, please try again"
 
-    # Filter for elements that start with either 'T5: ' or 'T5 '
-    t5_elements = page.locator('div.tocLabel').filter(lambda el:
-                                                      el.inner_text().startswith('T5: ') or el.inner_text().startswith('T5 '))
+    # Use text content to find T5 elements instead of filter with lambda
+    # This finds all elements with class 'tocLabel' containing text starting with 'T5:'
+    t5_elements = page.locator('div.tocLabel:has-text("T5: ")')
     all_t5s = await t5_elements.all()
 
     t5_found = False
     for t5 in all_t5s:
-        if name in await t5.inner_text():
+        t5_text = await t5.inner_text()
+        if name in t5_text:
             await t5.click()
             t5_found = True
             break
@@ -240,11 +241,11 @@ if __name__ == "__main__":
     async def main():
         members = await get_all_t5()
         print(members)
-        # result = await get_t5_info("T5: BBC")
-        # print(result)
+        result = await add_t5("abcd")
+        print(result)
+        result = await get_t5_info("T5: abcd")
+        print(result)
         result = await remove_t5("T5: abcd")
         print(result)
-        # result = await add_t5("abcd")
-        # print(result)
 
     asyncio.run(main())
