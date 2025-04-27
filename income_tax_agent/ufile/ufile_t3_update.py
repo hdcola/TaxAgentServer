@@ -1,36 +1,37 @@
+from typing import Optional
 from income_tax_agent import playwright_helper
+from income_tax_agent.ufile.ufile_t3 import get_t3_info
 
 
-async def update_t3(
-    name: str = "",
-    box: str = "0",
-    title: str = "",
-    value: str = "",
-) -> str | list[dict]:
+async def update_t3(name: str, value: str, title: Optional[str] = None, box: Optional[str] = None) -> str:
     """
-    Update or extract information from a T3 slip based on provided fill_data.
+    Update a specific T3 slip by its name or box.
 
     Args:
-        name (str, optional): The name of the T3 slip (e.g., "stanly"). Defaults to an empty string.
-        box (str, optional): The box number to match. Defaults to 0.
-        title (str, optional): The title to match. Defaults to an empty string.
-        value (str, optional): The value to fill in the matched input field. Defaults to an empty string.
+        name: The name of the T5 slip to update (e.g., "T5: BBC")
+        value: The new value to set in the input field
+        title: The title of the input field to update (at least one of title or box is required)
+        box: The box number of the input field to update (at least one of title or box is required)
 
     Returns:
-        A message indicating whether the operation was successful or not.
-        If there are mutiple titles under one box number, returns
+        str: A message indicating whether the operation was successful or not. 
+            If no corresponding title and box are found, return all titles and boxes.
     """
     page = await playwright_helper.get_page()
     if page is None:
         return "Ufile didn't load, please try again"
 
+    if not title and not box:
+        return "Either title or box must be provided to update the T3 slip."
+
     t3_elements = page.locator('div.tocLabel').filter(has_text='T3:')
     counts = await t3_elements.count()
 
     if counts == 0:
-        return "No T3 slips found."
+        return f"T3 slip with name '{name}' not found."
 
     await t3_elements.filter(has_text=name).first.click()
+    await page.wait_for_timeout(500)  # Give more time for the UI to update
 
     fieldsets = page.locator('fieldset')
     fieldset_count = await fieldsets.count()
@@ -38,52 +39,33 @@ async def update_t3(
     if fieldset_count == 0:
         return "No fieldsets found in the T3 slip."
 
-    #  打印调试信息
-    # for i in range(fieldset_count):
-    #     fieldset = fieldsets.nth(i)
-    #     text = await fieldset.inner_text()
-    #     print(f"Fieldset {i+1} content:\n{text}\n")
-
     for i in range(fieldset_count):
         fieldset = fieldsets.nth(i)
 
+        # Try to find the title/label
+        title_element = fieldset.locator('.int-label').first
+        title_text = await title_element.inner_text() if await title_element.count() > 0 else ""
+
+        # Try to find the box number
         box_element = fieldset.locator('.boxNumberContent').first
-        if await box_element.count() == 0:
-            continue  # 这个fieldset没有box number，跳过
+        box_text = await box_element.inner_text() if await box_element.count() > 0 else ""
 
-        box_text = (await box_element.inner_text()).strip()
+        # Try to find the input value
+        input_element = fieldset.locator('input[type="text"]').first
 
-        if box_text == box:  # box 是你传入的参数
-            # 找到了对应的fieldset！
-            print(f"Found fieldset for box {box}: Fieldset {i+1}")
-            input_element = fieldset.locator('input[type="text"]').first
-            original_value = await input_element.input_value()
-            if original_value == value:
-                return f"Box {box} already has the value {value}. No need to update or fill, replace it with a different value."
-            elif original_value == "" or original_value == "0":
-                await input_element.click()
+        # Check if this is the correct fieldset based on title and box number
+        match_title = title is None or title_text == title
+        match_box = box is None or box in box_text
+
+        if match_title and match_box:
+            if await input_element.count() > 0:
                 await input_element.fill(value)
-                await input_element.evaluate("element => element.blur()")
-                return f"Filled box {box} with value {value} successfully."
-            elif original_value != value:
-                await input_element.click()
-                await input_element.fill(value)
-                await input_element.evaluate("element => element.blur()")
-                return f"Updated box {box} from {original_value} to {value} successfully."
+                # type tab to move focus away
+                await input_element.press("Tab")
+                return f"Successfully updated T3 slip: {name} - {title} (Box {box}): {value}"
 
-    # for i in range (fieldset_count):
-    #     fieldset = fieldsets.nth(i)
-
-    #     print(f"Processing fieldset {i + 1} of {fieldset_count}...", fieldset)
-    #     box_elements = fieldset.locator('.boxNumberContent').first
-    #     box_text = await box_elements.inner_text()
-
-    #     if box_text.stirp() == str(box):
-    #         input_locator = fieldset.locator('input[type="text"][aria-hidden="false"]').first
-    #         await input_locator.fill(value)
-    #         return f"Filled box {box} with value {value} successfully."
-
-    return 'T3 slip clicked successfully.'
+    all_info = await get_t3_info(name)
+    return f"Fieldset with title '{title}' and box '{box}' not found in T3 slip: {name}. \n All info: {all_info}"
 
 if __name__ == "__main__":
     import asyncio
@@ -91,7 +73,7 @@ if __name__ == "__main__":
     async def main():
         # results = await update_t3(name="T3: Morgan", box=49, title="Actual amount of eligible dividends", value="666")
         # print(results)
-        results = await update_t3(name="T3: BOC", box=30, value="166")
+        results = await update_t3("T3: BOC", "123", box="51")
         print(results)
 
     asyncio.run(main())

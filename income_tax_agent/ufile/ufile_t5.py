@@ -52,24 +52,26 @@ async def add_t5(name: str) -> str:
     return f"Successfully added T5 slip: {name}"
 
 
-async def update_t5(name: str, title: Optional[str] = None, box: Optional[str] = None, value: Optional[str] = None) -> str:
+async def update_t5(name: str, value: str, title: Optional[str] = None, box: Optional[str] = None) -> str:
     """
-    Update a specific T5 slip by its name.
-
-    This function navigates to the specified T5 slip and updates the input field with the provided value.
+    Update a specific T5 slip by its name or box.
 
     Args:
         name: The name of the T5 slip to update (e.g., "T5: BBC")
+        value: The new value to set in the input field
         title: The title of the input field to update (at least one of title or box is required)
         box: The box number of the input field to update (at least one of title or box is required)
-        value: The new value to set in the input field
 
     Returns:
-        str: A message indicating whether the operation was successful or not
+        str: A message indicating whether the operation was successful or not. 
+            If no corresponding title and box are found, return all titles and boxes.
     """
     page = await playwright_helper.get_page()
     if page is None:
         return "Ufile didn't load, please try again"
+
+    if not title and not box:
+        return "Either title or box must be provided to update the T5 slip."
 
     # Find the T5 element with the given name
     t5_elements = page.locator('div.tocLabel').filter(has_text=name)
@@ -110,7 +112,6 @@ async def update_t5(name: str, title: Optional[str] = None, box: Optional[str] =
             match_box = box is None or box in box_text
 
             if match_title and match_box:
-                print(f"Title: {title_text}, Box: {box_text}, Value: {value}")
                 if await input_element.count() > 0:
                     await input_element.fill(value)
                     # type tab to move focus away
@@ -251,7 +252,11 @@ if __name__ == "__main__":
         # print(result)
         # result = await remove_t5("T5: abcd")
         # print(result)
-        result = await update_t5("T5: abcd", "Box 25 - taxable amount of eligible dividends", "25", "2100")
+        # result = await update_t5("T5: abcd", "2100", "Box 25 - taxable amount of eligible dividends", "25")
+        # print(result)
+        # result = await update_t5("T5: abcd", "3200", box="25")
+        # print(result)
+        result = await update_t5("T5: abcd", "2100", "Box 25 - taxable amount of eligible dividends")
         print(result)
 
     asyncio.run(main())
