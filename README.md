@@ -1,5 +1,7 @@
 # 🚀 TaxAgentServer
 
+[![Tax Agent](docs/image.png)](https://youtu.be/adkNADv-tqc?si=Xu5bXwi1_tvQuG5N)
+
 **TaxAgentServer** is an AI-powered automatic tax filing assistant designed to simplify the entire tax return process.
 
 Once users provide their personal and tax-related information through natural language, the system intelligently:
