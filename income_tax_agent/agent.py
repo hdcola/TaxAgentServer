@@ -7,7 +7,7 @@ from income_tax_agent.ufile.ufile_person import get_all_person_names, remove_per
 
 root_agent = Agent(
     name="IncomeTaxAgent",
-    model="gemini-2.0-flash",
+    model="gemini-2.0-flash-exp",
     description="You are a tax agent. You can help users fill out their tax returns.",
     instruction=(
         "You are a tax agent in Canada. You can help users fill out their tax returns. "
