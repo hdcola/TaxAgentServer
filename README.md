@@ -37,7 +37,8 @@ No complex forms, no manual data entry — just a fast, user-friendly, and relia
 
 ## 🛠️ Tech Stack
 
-![IMG_1622](https://github.com/user-attachments/assets/cf5675a2-3fc2-486c-8c21-69d4d721f0f8)
+![telegram-cloud-photo-size-1-4934099210815516439-y](https://github.com/user-attachments/assets/67ab1139-d766-4c0a-ab20-21ceced068bf)
+
 
 
 - **Python** — Core programming language
