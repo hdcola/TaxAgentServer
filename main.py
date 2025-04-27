@@ -1,16 +1,17 @@
-from extlib.auth.auth_router import router as auth_router
-from extlib.auth.database import create_db_and_tables
-from extlib.auth.firebase_config import initialize_firebase
-from extlib.custom_fast_api import get_my_fast_api_app
 import os
 
 import uvicorn
 from fastapi import FastAPI
 from dotenv import load_dotenv
-from contextlib import asynccontextmanager  # Import for lifespan
+from contextlib import asynccontextmanager # Import for lifespan
 load_dotenv()
-# from google.adk.cli.fast_api import get_fast_api_app
-# ---- add auth stuff here ----
+#from google.adk.cli.fast_api import get_fast_api_app
+from extlib.custom_fast_api import get_my_fast_api_app
+#---- add auth stuff here ----
+from extlib.auth.firebase_config import initialize_firebase
+from extlib.auth.database import create_db_and_tables
+from extlib.auth.auth_router import router as auth_router
+
 
 
 # Get the directory where main.py is located
@@ -23,14 +24,12 @@ ALLOWED_ORIGINS = ("*",)
 SERVE_WEB_INTERFACE = False
 
 # --- Lifespan Context Manager ---
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Code to run on startup
     print("Application startup...")
     initialize_firebase()       # Initialize Firebase Admin
-    await create_db_and_tables()  # Create database tables
+    await create_db_and_tables() # Create database tables
     print("Startup complete.")
     yield
     # Code to run on shutdown
@@ -47,8 +46,6 @@ app: FastAPI = get_my_fast_api_app(
     lifespan=lifespan,  # Use the lifespan context manager
 )
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
-
-
 @app.get("/")
 async def root():
     return {"message": "Welcome - API Root"}
