@@ -22,6 +22,78 @@ async def get_all_t4a() -> list | str:
 
     return t4a_values
 
+async def add_t4a(name: str) -> str:
+    """
+    Add a new T4A slip to the current member.
+
+    Args:
+        name: The name of the T4A slip to add (e.g., "T4A: Company A")
+
+    Returns:
+        str: A message indicating whether the operation was successful or not
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    # Click on the "4A, T4FHSA and pension income" div
+    await page.get_by_role("button", name="T4A, T4FHSA and pension income").first.click()
+    await page.wait_for_timeout(1000)  # Wait for the UI to update
+    # Click on the "T4A - Pension, retirement, annuity, and other income (COVID-19 benefits)" add button
+    await page.get_by_role("button", name="Add Item. T4A - Pension, retirement, annuity, and other income (COVID-19 benefits)").click()
+    await page.wait_for_timeout(1000)  # Wait for the UI to update
+    # Input the name of the T4A slip
+    await page.get_by_role(
+        "textbox", name="Enter Text. This T4A slip was").fill(name)
+
+    return f"Successfully added T4A slip: {name}"
+
+async def remove_t4a(name: str) -> str:
+    """
+    Remove a specific T5 slip by its name.
+
+    This function navigates to the specified T4A slip and removes it from the current member.
+
+    Args:
+        name: The name of the T4A slip to remove (e.g., "T4A: Company A")
+
+    Returns:
+        str: A message indicating whether the operation was successful or not
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    # Find the T5 element with the given name
+    t4a_elements = page.locator('div.tocLabel').filter(has_text=name)
+    count = await t4a_elements.count()
+
+    if count == 0:
+        return f"T4A slip with name '{name}' not found."
+
+    try:
+
+        remove_button = page.locator(
+            f'button.tocIconRemove[aria-hidden="false"][aria-label*="{name}"]').first
+        await page.evaluate("""
+            window.originalConfirm = window.confirm; // store the original confirm function, optional
+            window.confirm = function(message) {
+                console.log('Intercepted confirm: "' + message + '". Returning true.');
+                return true; // directly return true to simulate user confirmation
+            };
+        """)
+
+        # Debug: Check if button is found and visible
+        # if await remove_button.count() == 0:
+        #     remove_button = page.locator(
+        #         f'button.tocIconRemove[aria-label*="{name}"]')
+        # Click the remove button
+        await remove_button.click()
+        return f"Successfully removed T4A slip: {name}"
+    except Exception as e:
+        return f"Error updating T4A slip: {str(e)}"
+    
+
 async def get_t4a_info(name: str) -> str | list[dict]:
     """
     Select a specific T4A slip by its name and extract all input fields information.
@@ -369,8 +441,10 @@ if __name__ == "__main__":
             # result = await update_t4a_info(members[0], "", "Note - Special tax withheld (RL-2)","", "999")
             # result = await update_t4a_info(members[0], "", "Note - Special tax withheld","", "999")
             #result = await update_t4a_info(members[0], "", "[102] lump-sum payments - non-resident services transferred to RRSP", "999","018")
-            result = await create_t4a_option(members[0], "[102] lump-sum payments - non-resident services transferred to RRSP","987", "018")
-            result = await create_t4a_option(members[0], "Note - Special tax withheld", "454")
-            print(result)
+            # result = await create_t4a_option(members[0], "[102] lump-sum payments - non-resident services transferred to RRSP","987", "018")
+            # result = await create_t4a_option(members[0], "Note - Special tax withheld", "454")
+            # print(result)
+            # await add_t4a("Company C")
+            await remove_t4a("Company C")
 
     asyncio.run(main())
