@@ -22,6 +22,78 @@ async def get_all_t4a() -> list | str:
 
     return t4a_values
 
+async def add_t4a(name: str) -> str:
+    """
+    Add a new T4A slip to the current member.
+
+    Args:
+        name: The name of the T4A slip to add (e.g., "T4A: Company A")
+
+    Returns:
+        str: A message indicating whether the operation was successful or not
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    # Click on the "4A, T4FHSA and pension income" div
+    await page.get_by_role("button", name="T4A, T4FHSA and pension income").first.click()
+    await page.wait_for_timeout(1000)  # Wait for the UI to update
+    # Click on the "T4A - Pension, retirement, annuity, and other income (COVID-19 benefits)" add button
+    await page.get_by_role("button", name="Add Item. T4A - Pension, retirement, annuity, and other income (COVID-19 benefits)").click()
+    await page.wait_for_timeout(1000)  # Wait for the UI to update
+    # Input the name of the T4A slip
+    await page.get_by_role(
+        "textbox", name="Enter Text. This T4A slip was").fill(name)
+
+    return f"Successfully added T4A slip: {name}"
+
+async def remove_t4a(name: str) -> str:
+    """
+    Remove a specific T5 slip by its name.
+
+    This function navigates to the specified T4A slip and removes it from the current member.
+
+    Args:
+        name: The name of the T4A slip to remove (e.g., "T4A: Company A")
+
+    Returns:
+        str: A message indicating whether the operation was successful or not
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    # Find the T5 element with the given name
+    t4a_elements = page.locator('div.tocLabel').filter(has_text=name)
+    count = await t4a_elements.count()
+
+    if count == 0:
+        return f"T4A slip with name '{name}' not found."
+
+    try:
+
+        remove_button = page.locator(
+            f'button.tocIconRemove[aria-hidden="false"][aria-label*="{name}"]').first
+        await page.evaluate("""
+            window.originalConfirm = window.confirm; // store the original confirm function, optional
+            window.confirm = function(message) {
+                console.log('Intercepted confirm: "' + message + '". Returning true.');
+                return true; // directly return true to simulate user confirmation
+            };
+        """)
+
+        # Debug: Check if button is found and visible
+        # if await remove_button.count() == 0:
+        #     remove_button = page.locator(
+        #         f'button.tocIconRemove[aria-label*="{name}"]')
+        # Click the remove button
+        await remove_button.click()
+        return f"Successfully removed T4A slip: {name}"
+    except Exception as e:
+        return f"Error updating T4A slip: {str(e)}"
+    
+
 async def get_t4a_info(name: str) -> str | list[dict]:
     """
     Select a specific T4A slip by its name and extract all input fields information.
@@ -142,7 +214,7 @@ async def smart_select_option(select_element, target_text: str):
             exact_match = option_value
             break
 
-        if partial_match is None and target_text.lower() in option_text.lower():
+        if target_text.strip() != '' and partial_match is None and target_text.lower() in option_text.lower():
             partial_match = option_value
 
     if exact_match:
@@ -159,7 +231,7 @@ async def smart_select_option(select_element, target_text: str):
         return all_options_data
 
 
-async def update_t4a_info(name: str, title: str, option:str, box: str, value:str) -> str:
+async def update_t4a_info(name: str, title: str, option:str, value:str, box: str = None) -> str:
     """
     Select a specific T4A slip and update its fields based on the given data.
 
@@ -167,7 +239,7 @@ async def update_t4a_info(name: str, title: str, option:str, box: str, value:str
         name: The name of the T4A slip to select (e.g., "T4A: Company A")
         title: The label of the input field to match
         option: The option to match (if available)
-        box: The box number (if available)If the box number has fewer than 3 digits, pad with leading zeros to make it 3 digits. For example:'5' -> '005'
+        box: The box number (if available). If the box number has fewer than 3 digits, pad with leading zeros to make it 3 digits. For example:'5' -> '005''.
         value: The value to set in the input field. If the field is a date, it should be in the format "MM-DD-YYYY".
 
     Returns:
@@ -198,6 +270,10 @@ async def update_t4a_info(name: str, title: str, option:str, box: str, value:str
     matched_reason = ""
     titles = []
     options = []
+    boxes = []
+
+    if box == None:
+        box = ""
 
     for i in range(count):
         fieldset = fieldsets.nth(i)
@@ -206,6 +282,8 @@ async def update_t4a_info(name: str, title: str, option:str, box: str, value:str
         box_element = fieldset.locator('.boxNumberContent').first
         current_box = await box_element.inner_text() if await box_element.count() > 0 else ""
         current_box = current_box.strip()
+        if current_box and current_box != "":
+            boxes.append(current_box)
 
         # Get title
         title_element = fieldset.locator('.int-label').first
@@ -240,7 +318,7 @@ async def update_t4a_info(name: str, title: str, option:str, box: str, value:str
             break
 
     if not matched_fieldset:
-        return {"error": f"No matching option or title found. Check found options", "options": options, "titles": titles}
+        return {"error": f"No matching option or title found. Check found options", "options": options, "titles": titles, "boxes": boxes}
 
     # Update value
     input_element = matched_fieldset.locator('input[type="text"][aria-hidden="false"]').first
@@ -261,6 +339,88 @@ async def update_t4a_info(name: str, title: str, option:str, box: str, value:str
 
     return f"T4A field updated successfully by {matched_reason}."
 
+
+async def create_t4a_option(name: str, option: str, value: str, box: str = None) -> str:
+    """
+    Select a specific T4A slip and update its fields based on the given data.
+
+    Args:
+        name: The name of the T4A slip to select (e.g., "T4A: Company A")
+        option: The option to match. 
+        box: The box number to match. If the box number has fewer than 3 digits, pad with leading zeros to make it 3 digits. For example:'5' -> '005'.
+        value: The value to set in the input field. 
+
+    Returns:
+        str: Result message indicating success or failure
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    # Find and click the T4A slip tab
+    t4a_elements = page.locator('div.tocLabel').filter(has_text='T4A:')
+    all_t4as = await t4a_elements.all()
+
+    for t4a in all_t4as:
+        if name in await t4a.inner_text():
+            await t4a.click()
+            break
+    else:
+        return f"T4A slip with name '{name}' not found."
+
+    await page.wait_for_timeout(1000)
+
+    # Get all fieldsets
+    fieldsets = page.locator('fieldset')
+    count = await fieldsets.count()
+
+    boxes = []
+
+    if box == None:
+        box = ""
+
+    for i in range(count):
+        fieldset = fieldsets.nth(i)
+
+        select_element = fieldset.locator('select').first
+        if await select_element.count() == 0:
+            continue
+
+        box_element = fieldset.locator('.boxNumberContent').first
+        current_box = await box_element.inner_text() if await box_element.count() > 0 else ""
+        current_box = current_box.strip()
+        boxes.append(current_box)
+
+        if current_box != box:
+            continue
+
+        current_option = await select_element.locator(f'option[value="{await select_element.input_value()}"]').inner_text() \
+            if await select_element.count() > 0 else ""
+        if current_option.strip() == "":
+            select_result = await smart_select_option(select_element, option)
+            if select_result is not None:
+                return {"error": f"No matching option found for '{option}'", "options": select_result}
+
+            input_element = fieldset.locator('input[type="text"][aria-hidden="false"]').first
+            if await input_element.count() > 0:
+                await input_element.fill(value.strip())
+            else:
+                return "Input field not found in fieldset."
+
+            return "T4A field created successfully by box match (empty option filled)."
+
+        else:
+            add_button = fieldset.locator('button[class="addItem"]').first
+            if await add_button.count() > 0:
+                await add_button.click()
+                await page.wait_for_timeout(1000)
+                continue
+            else:
+                return "Add button not found to create a new entry."
+
+    return {"error": f"No matching box found. Check found options", "boxes": boxes}
+
+
 if __name__ == "__main__":
     import asyncio
 
@@ -275,11 +435,16 @@ if __name__ == "__main__":
             # for item in members:
             #     result = await get_t4a_info(item)
             #     print(result)
-            result = await update_t4a_info(members[0], "", "","111", "new content only")
-            # result = await update_t4a_info(members[0], "", "","C-10", "10-10-2024")
-            # result = await update_t4a_info(members[0], "", "Registered pension plan","016", "777")
+            # result = await update_t4a_info(members[0], "", "", "new content only","111")
+            # result = await update_t4a_info(members[0], "", "", "10-10-2024","C-10")
+            # result = await update_t4a_info(members[0], "", "Registered pension plan", "777","016")
             # result = await update_t4a_info(members[0], "", "Note - Special tax withheld (RL-2)","", "999")
             # result = await update_t4a_info(members[0], "", "Note - Special tax withheld","", "999")
-            print(result)
+            #result = await update_t4a_info(members[0], "", "[102] lump-sum payments - non-resident services transferred to RRSP", "999","018")
+            # result = await create_t4a_option(members[0], "[102] lump-sum payments - non-resident services transferred to RRSP","987", "018")
+            # result = await create_t4a_option(members[0], "Note - Special tax withheld", "454")
+            # print(result)
+            # await add_t4a("Company C")
+            await remove_t4a("Company C")
 
     asyncio.run(main())
