@@ -23,6 +23,7 @@ async def get_all_t3() -> list | str:
 
     return t3_values
 
+
 async def get_t3_info(name: str) -> str | list[dict]:
     """
     Select a specific T3 slip by its name and extract all input fields information.
@@ -58,7 +59,7 @@ async def get_t3_info(name: str) -> str | list[dict]:
 
     if not t3_found:
         return f"T3 slip '{name}' not found."
-    
+
     await page.wait_for_timeout(1000)  # Wait for the page to load
 
     fieldsets = page.locator('fieldset')
@@ -70,7 +71,7 @@ async def get_t3_info(name: str) -> str | list[dict]:
         fieldset = fieldsets.nth(i)
         item = {}
 
-         # Try to find the title/label
+        # Try to find the title/label
         title_element = fieldset.locator('.int-label').first
         title = await title_element.inner_text() if await title_element.count() > 0 else ""
 
@@ -92,15 +93,16 @@ async def get_t3_info(name: str) -> str | list[dict]:
 
     return formatted_fields
 
-async def create_new_t3(name: str) -> str:
+
+async def add_t3(name: str) -> str:
     """
     Create a new T3 slip with the specified name.
 
     Args:
-        name: The name of the new T3 slip to create (e.g., "TD_Bank")
+        name: The name of the new T3 slip to create
 
     Returns:
-        str: A message indicating the result of the operation.
+        str: A message indicating the result of the operation
     """
     page = await playwright_helper.get_page()
     if page is None:
@@ -114,12 +116,13 @@ async def create_new_t3(name: str) -> str:
 
     return f"New T3 slip '{name}' created successfully."
 
-async def remove_t3(name: str)-> str:
+
+async def remove_t3(name: str) -> str:
     """
     Remove a specific T3 slip by its name.
 
     This function navigates to the specified T3 slip and removes it from the current member.
-    
+
     Args:
         name: The name of the T3 slip to remove (e.g., "T3: BBC")
 
@@ -136,7 +139,7 @@ async def remove_t3(name: str)-> str:
 
     if count == 0:
         return f"T3 slip with name '{name}' not found."
-    
+
     try:
 
         remove_button = page.locator(
@@ -162,7 +165,7 @@ if __name__ == "__main__":
         print(t3_slips)
         result = await get_t3_info("T3: stanly")
         print(result)
-        newT3 = await create_new_t3("T3: BOC")
+        newT3 = await add_t3("BOC")
         print(newT3)
 
     asyncio.run(main())
