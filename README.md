@@ -1,50 +1,80 @@
-# TaxAgentServer
+# 🚀 TaxAgentServer
 
-An AI-driven automatic tax filing checker. Once users provide personal and tax-related information using natural language, the AI automatically opens the relevant tax form webpages, fills in personal details and tax data, and allows users to retrieve or summarize the provided information using natural language commands for easy verification.
+**TaxAgentServer** is an AI-powered automatic tax filing assistant designed to simplify the entire tax return process.
 
-## Features
+Once users provide their personal and tax-related information through natural language, the system intelligently:
 
-- Automatically open webpages and fill tax information
-- Natural language input and control
-- Intelligent retrieval and summarization of filled data
-- User-friendly interactive review interface
+- Opens the relevant tax form webpages
+- Auto-fills personal details and tax slip data
+- Allows users to retrieve, review, and summarize all entered information
+- Supports easy verification and adjustments via conversational commands
 
-## Tech Stack
+No complex forms, no manual data entry — just a fast, user-friendly, and reliable tax filing experience.
 
-- Python
-- Playwright
-- Google GenAI
-- JWT Authentication
-- FastAPI
-- SQLite
-- Docker
+## ✨ Features
 
-## Installation 
+- **Automated Tax Filing:**  
+  Automatically opens required web pages, fills in tax slip information based on user input, and handles form interactions intelligently.
 
-### Installation requirements
+- **Natural Language Interface:**  
+  Users simply chat with the system — no complicated forms or technical steps. Provide slip types, box numbers, and amounts naturally through conversation.
 
-1. Clone repository:
+- **AI-Driven Data Extraction:**  
+  Automatically retrieves, validates, and summarizes the filled tax data for review, reducing human errors.
+
+- **Interactive Review Mode:**  
+  Offers a user-friendly, conversational interface for users to review, confirm, and edit their tax information before final submission.
+
+- **Zero Guesswork, Zero Confusion:**  
+  Streamlines the entire tax return process — no need for users to understand government forms or technical details. The system handles everything end-to-end.
+
+- **Seamless Slip Management:**  
+  Supports multiple slip types (T4, T4A, etc.) and dynamic box number matching, with intelligent auto-correction and validation.
+
+- **Fast and Secure:**  
+  Optimized for speed and accuracy while maintaining high standards of user data privacy and protection.
+
+
+## 🛠️ Tech Stack
+
+![telegram-cloud-photo-size-1-4934099210815516439-y](https://github.com/user-attachments/assets/67ab1139-d766-4c0a-ab20-21ceced068bf)
+
+
+
+- **Python** — Core programming language
+- **Playwright** — Browser automation for seamless web interaction
+- **Google GenAI** — Natural language understanding and AI-driven processing
+- **JWT Authentication** — Secure and stateless user authentication
+- **FastAPI** — High-performance web framework for APIs
+- **SQLite** — Lightweight database for storage
+- **Docker** — Containerization for easy deployment and scaling
+
+## 🚀 Installation
+
+### 📦 Installation Requirements
+
+1. **Clone the repository**:
 
 ```bash
 git clone https://github.com/yourusername/fill-agent-server.git
 ```
 
-2. Init virtual environment and install dependencies:
+2. **Initialize virtual environment and install dependencies**:
 
 ```bash
 uv venv
 uv sync
 ```
 
-3. Install Playwright browsers:
+3. **Install Playwright browsers**:
 
 ```bash
 playwright install
 ```
 
-### Setup environment Variables
+### ⚙️ Setup Environment Variables
 
-Set Google GenAI API key and JWT secret key.
+Set your Google GenAI API key, JWT secret key, and UFile credentials:
 
 ```bash
 GOOGLE_GENAI_USE_VERTEXAI="False"
@@ -55,47 +85,48 @@ UFILE_PASSWORD=
 PLAYWRIGHT_PORT=3100
 ```
 
-### Usage
+### 📖 Usage
 
-#### Satart browser
+#### 🖥️ Start Browser
 
 ```bash
 uv run income_tax_agent/brower_server.py
 ```
 
-You should click login button and select 2024 tax year.
+> 📝 **Note**: After starting the browser, click the login button and select the **2024** tax year.
 
-#### Usage
-
-##### Using in development web UI
+#### 💻 Development Web UI
 
 ```bash
 uv run adk web
 ```
 
-##### Using in CLI
+#### 🖥️ Command Line Interface (CLI)
 
 ```bash
 uv run income_tax_agent
 ```
 
-### Run backend API server
+### 🛠️ Run Backend API Server
 
 ```bash
 uv run main.py
 ```
 
+---
 
-## Contributing
+## 🤝 Contributing
 
-Contributions and suggestions are welcome:
+We welcome contributions and suggestions! Here's how you can help:
 
 1. Fork this repository
 2. Create a new branch
 3. Commit your changes
 4. Create a Pull Request
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 📄 License
+
+This project is licensed under the **MIT License**.
 
