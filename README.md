@@ -37,6 +37,9 @@ No complex forms, no manual data entry — just a fast, user-friendly, and relia
 
 ## 🛠️ Tech Stack
 
+![IMG_1622](https://github.com/user-attachments/assets/cf5675a2-3fc2-486c-8c21-69d4d721f0f8)
+
+
 - **Python** — Core programming language
 - **Playwright** — Browser automation for seamless web interaction
 - **Google GenAI** — Natural language understanding and AI-driven processing
