@@ -178,3 +178,4 @@ docs/test.html
 
 *.key.json
 auth.db
+*.json

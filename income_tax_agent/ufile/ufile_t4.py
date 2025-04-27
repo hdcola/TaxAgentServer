@@ -182,7 +182,7 @@ async def get_t4_info(name: str) -> str | list[dict]:
 
     return formatted_fields
 
-async def update_t4_info(name: str, title: str, value:str, option:str = None, box: str = None) -> str:
+async def update_t4_info(name: str, value:str, title: str = "", option:str = "", box: str = "") -> str:
     """
     Select a specific T4 slip and update its fields based on the given data.
 
