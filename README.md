@@ -45,32 +45,32 @@ No complex forms, no manual data entry — just a fast, user-friendly, and relia
 - **SQLite** — Lightweight database for storage
 - **Docker** — Containerization for easy deployment and scaling
 
-## Installation 
+## 🚀 Installation
 
-### Installation requirements
+### 📦 Installation Requirements
 
-1. Clone repository:
+1. **Clone the repository**:
 
 ```bash
 git clone https://github.com/yourusername/fill-agent-server.git
 ```
 
-2. Init virtual environment and install dependencies:
+2. **Initialize virtual environment and install dependencies**:
 
 ```bash
 uv venv
 uv sync
 ```
 
-3. Install Playwright browsers:
+3. **Install Playwright browsers**:
 
 ```bash
 playwright install
 ```
 
-### Setup environment Variables
+### ⚙️ Setup Environment Variables
 
-Set Google GenAI API key and JWT secret key.
+Set your Google GenAI API key, JWT secret key, and UFile credentials:
 
 ```bash
 GOOGLE_GENAI_USE_VERTEXAI="False"
@@ -81,47 +81,48 @@ UFILE_PASSWORD=
 PLAYWRIGHT_PORT=3100
 ```
 
-### Usage
+### 📖 Usage
 
-#### Satart browser
+#### 🖥️ Start Browser
 
 ```bash
 uv run income_tax_agent/brower_server.py
 ```
 
-You should click login button and select 2024 tax year.
+> 📝 **Note**: After starting the browser, click the login button and select the **2024** tax year.
 
-#### Usage
-
-##### Using in development web UI
+#### 💻 Development Web UI
 
 ```bash
 uv run adk web
 ```
 
-##### Using in CLI
+#### 🖥️ Command Line Interface (CLI)
 
 ```bash
 uv run income_tax_agent
 ```
 
-### Run backend API server
+### 🛠️ Run Backend API Server
 
 ```bash
 uv run main.py
 ```
 
+---
 
-## Contributing
+## 🤝 Contributing
 
-Contributions and suggestions are welcome:
+We welcome contributions and suggestions! Here's how you can help:
 
 1. Fork this repository
 2. Create a new branch
 3. Commit your changes
 4. Create a Pull Request
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 📄 License
+
+This project is licensed under the **MIT License**.
 
