@@ -1,7 +1,9 @@
 # custom_sessions.py
+# this file only uses the DatabaseSessionService class
 import logging
 
 from google.adk.sessions.database_session_service import DatabaseSessionService
+#from .custom_mongodb_session_service import MongoDBSessionService
 from google.adk.sessions.session import Session
 from google.adk.events.event import Event
 from typing_extensions import override
@@ -25,3 +27,5 @@ class MyDatabaseSessionService(DatabaseSessionService):
             return event
         logger.info(f"Custom append_event: Appending event from {event.author} for session {session.id}")
         return super().append_event(session, event)
+
+
