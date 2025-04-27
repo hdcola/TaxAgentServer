@@ -50,6 +50,7 @@ from .auth.auth_dependencies import get_current_active_user # For HTTP routes
 from .auth.jwt_handler import verify_internal_token, credentials_exception, expired_token_exception # For WebSocket manual check
 from .auth.database import User as DBUser # Import your SQLAlchemy User model
 from .auth.auth_models import TokenPayload # To type hint token payload
+from .custom_mongodb_session_service import MongoDBSessionService
 
 
 logger = logging.getLogger(__name__)
@@ -131,7 +132,7 @@ def get_my_fast_api_app(
                 os.environ["GOOGLE_CLOUD_LOCATION"],
             )
         else:
-            session_service = MyDatabaseSessionService(db_url=session_db_url)
+            session_service = MongoDBSessionService(db_url=session_db_url)
     else:
         session_service = InMemorySessionService()
 
@@ -743,8 +744,23 @@ def get_my_fast_api_app(
         except WebSocketDisconnect:
             logger.info("Client disconnected during process_messages.")
         except Exception as e:
+            error_message = str(e)
+            error_type = type(e).__name__
             logger.exception("Error during live websocket communication: %s", e)
-            traceback.print_exc()
+            try:
+                # 向前端发送格式化的错误消息
+                error_payload = {
+                    "type": "error",
+                    "error": {
+                        "type": error_type,
+                        "message": error_message,
+                        "details": traceback.format_exc()
+                    }
+                }
+                # 假设 websocket 是可用的且定义在更高层级的代码中
+                await websocket.send_json(error_payload)
+            except Exception as send_error:
+                logger.error("Failed to send error message to client: %s", send_error)
         finally:
             for task in pending:
                 task.cancel()
