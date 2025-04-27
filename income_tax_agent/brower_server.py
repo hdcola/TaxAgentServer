@@ -10,7 +10,7 @@ print(f"Username: {username}")
 password = os.getenv("UFILE_PASSWORD", "your_password")
 playwright_port = os.getenv("PLAYWRIGHT_PORT", 9300)
 
-WINDOW_WIDTH = 1006
+WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 1219
 
 
