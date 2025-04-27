@@ -3,7 +3,7 @@ from income_tax_agent import playwright_helper
 
 async def update_t3(
     name: str = "",
-    box: str = 0,
+    box: str = "0",
     title: str = "",
     value: str = "",
 ) -> str | list[dict]:
