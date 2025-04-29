@@ -24,6 +24,47 @@ async def get_all_t3() -> list | str:
     return t3_values
 
 
+async def order_all_t3() -> str:
+    """
+    Order all T3 slips from the current member.
+
+    Returns:
+        str: A message indicating whether the operation was successful or not
+    """
+    page = await playwright_helper.get_page()
+    if page is None:
+        return "Ufile didn't load, please try again"
+
+    elements = page.locator('div.tocLabel').filter(has_text='T3:')
+    all_t3s = await elements.all()
+    count = await elements.count()
+    index = 1
+
+    for t3 in all_t3s:
+        await t3.click()
+        await page.wait_for_timeout(2000)
+        input_element = page.get_by_label(
+            'Enter Text. This T3 slip was issued by. ')
+        name = await input_element.input_value()
+        # If there's a # in the string, remove # and everything after it
+        if "#" in name:
+            name = name.split("#")[0]
+        # If the string is longer than 27 characters, truncate to the first 27 characters
+        if len(name) > 27:
+            name = name[:27]
+        # Append an index to the name, pad with zero if the number is less than 10
+        if index < 10:
+            name = name + "#" + str(index).zfill(2)
+        else:
+            name = name + "#" + str(index)
+        index += 1
+
+        await input_element.fill(name)
+        await input_element.press("Tab")
+
+    return await get_all_t3()
+
+
 async def get_t3_info(name: str) -> str | list[dict]:
     """
     Select a specific T3 slip by its name and extract all input fields information.
@@ -163,9 +204,11 @@ if __name__ == "__main__":
     async def main():
         t3_slips = await get_all_t3()
         print(t3_slips)
-        result = await get_t3_info("T3: stanly")
+        # result = await get_t3_info("T3: stanly")
+        # print(result)
+        # newT3 = await add_t3("BOC")
+        # print(newT3)
+        result = await order_all_t3()
         print(result)
-        newT3 = await add_t3("BOC")
-        print(newT3)
 
     asyncio.run(main())
