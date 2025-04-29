@@ -1,5 +1,4 @@
 from income_tax_agent import playwright_helper
-from income_tax_agent.ufile.ufile_util import add_serial
 
 
 async def get_all_t3() -> list | str:
@@ -168,7 +167,5 @@ if __name__ == "__main__":
         # print(result)
         # newT3 = await add_t3("BOC")
         # print(newT3)
-        result = await add_serial_to_t3()
-        print(result)
 
     asyncio.run(main())
