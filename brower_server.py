@@ -10,8 +10,8 @@ print(f"Username: {username}")
 password = os.getenv("UFILE_PASSWORD", "your_password")
 playwright_port = os.getenv("PLAYWRIGHT_PORT", 9300)
 
-WINDOW_WIDTH = 800
-WINDOW_HEIGHT = 1219
+WINDOW_WIDTH = os.getenv("WINDOW_WIDTH", 800)
+WINDOW_HEIGHT = os.getenv("WINDOW_HEIGHT", 600)
 
 
 async def main():
@@ -30,7 +30,7 @@ async def main():
         page = await browser.new_page()
         await page.goto('https://secure.ufile.ca/account/login?lang=en&mode=UFileT1')
         await page.set_viewport_size(
-            {'width': WINDOW_WIDTH, 'height': WINDOW_HEIGHT})
+            {'width': int(WINDOW_WIDTH), 'height': int(WINDOW_HEIGHT)})
         await page.fill('input[name="Username"]', username)
         await page.fill('input[name="Password"]', password)
 
