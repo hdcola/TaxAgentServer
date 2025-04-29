@@ -241,8 +241,6 @@ async def get_t5_info(name: str) -> str | list[dict]:
 if __name__ == "__main__":
     import asyncio
 
-    from playwright.async_api import async_playwright
-
     async def main():
         members = await get_all_t5()
         print(members)
@@ -256,7 +254,7 @@ if __name__ == "__main__":
         # print(result)
         # result = await update_t5("T5: abcd", "3200", box="25")
         # print(result)
-        result = await update_t5("T5: abcd", "2100", "Box 25 - taxable amount of eligible dividends")
-        print(result)
+        # result = await update_t5("T5: abcd", "2100", "Box 25 - taxable amount of eligible dividends")
+        # print(result)
 
     asyncio.run(main())
