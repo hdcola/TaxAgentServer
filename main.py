@@ -17,10 +17,10 @@ from extlib.auth.auth_router import router as auth_router
 # Get the directory where main.py is located
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Example session DB URL (e.g., SQLite)
-#SESSION_DB_URL = "sqlite:///./sessions.db"
+SESSION_DB_URL = "sqlite:///./sessions.db"
 #use MongoDB URI from environment variable
 from extlib.helpers import get_mongodb_uri
-SESSION_DB_URL = get_mongodb_uri() 
+#SESSION_DB_URL = get_mongodb_uri() 
 # Example allowed origins for CORS
 ALLOWED_ORIGINS = ("*",)
 # Set web=True if you intend to serve a web interface, False otherwise

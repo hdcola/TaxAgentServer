@@ -46,14 +46,16 @@ from google.adk.cli.fast_api import ApiServerSpanExporter, AgentRunRequest, AddS
 # import custom session service
 from .custom_sessions import MyDatabaseSessionService
 # import auth dependencies
-from .auth.auth_dependencies import get_current_active_user # For HTTP routes
-from .auth.jwt_handler import verify_internal_token, credentials_exception, expired_token_exception # For WebSocket manual check
-from .auth.database import User as DBUser # Import your SQLAlchemy User model
-from .auth.auth_models import TokenPayload # To type hint token payload
+from .auth.auth_dependencies import get_current_active_user  # For HTTP routes
+# For WebSocket manual check
+from .auth.jwt_handler import verify_internal_token, credentials_exception, expired_token_exception
+from .auth.database import User as DBUser  # Import your SQLAlchemy User model
+from .auth.auth_models import TokenPayload  # To type hint token payload
 from .custom_mongodb_session_service import MongoDBSessionService
 
 
 logger = logging.getLogger(__name__)
+
 
 def get_my_fast_api_app(
     *,
@@ -85,6 +87,7 @@ def get_my_fast_api_app(
     trace.set_tracer_provider(provider)
 
     exit_stacks = []
+
     @asynccontextmanager
     async def internal_lifespan(app: FastAPI):
         if lifespan:
@@ -132,7 +135,7 @@ def get_my_fast_api_app(
                 os.environ["GOOGLE_CLOUD_LOCATION"],
             )
         else:
-            session_service = MongoDBSessionService(db_url=session_db_url)
+            session_service = MyDatabaseSessionService(db_url=session_db_url)
     else:
         session_service = InMemorySessionService()
 
@@ -164,12 +167,14 @@ def get_my_fast_api_app(
         "/apps/{app_name}/users/{user_id}/sessions/{session_id}",
         response_model_exclude_none=True,
     )
-    def get_session(app_name: str, user_id: str, session_id: str, 
-                    current_user: DBUser = Depends(get_current_active_user) # Add dependency
+    def get_session(app_name: str, user_id: str, session_id: str,
+                    current_user: DBUser = Depends(
+                        get_current_active_user)  # Add dependency
                     ) -> Session:
         if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this user's session")
- 
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not authorized to access this user's session")
+
         app_name = agent_engine_id if agent_engine_id else app_name
         session = session_service.get_session(
             app_name=app_name, user_id=user_id, session_id=session_id
@@ -183,10 +188,12 @@ def get_my_fast_api_app(
         response_model_exclude_none=True,
     )
     def list_sessions(app_name: str, user_id: str,
-                    current_user: DBUser = Depends(get_current_active_user) # Add dependency 
+                      current_user: DBUser = Depends(
+                          get_current_active_user)  # Add dependency
                       ) -> list[Session]:
         if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this user's sessions")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not authorized to access this user's sessions")
         # Connect to managed session if agent_engine_id is set.
         app_name = agent_engine_id if agent_engine_id else app_name
         return [
@@ -207,10 +214,12 @@ def get_my_fast_api_app(
             user_id: str,
             session_id: str,
             state: Optional[dict[str, Any]] = None,
-            current_user: DBUser = Depends(get_current_active_user) # Add dependency
+            current_user: DBUser = Depends(
+                get_current_active_user)  # Add dependency
     ) -> Session:
         if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this user's session")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not authorized to access this user's session")
         # Connect to managed session if agent_engine_id is set.
         app_name = agent_engine_id if agent_engine_id else app_name
         if (
@@ -237,10 +246,12 @@ def get_my_fast_api_app(
             app_name: str,
             user_id: str,
             state: Optional[dict[str, Any]] = None,
-            current_user: DBUser = Depends(get_current_active_user) # Add dependency
+            current_user: DBUser = Depends(
+                get_current_active_user)  # Add dependency
     ) -> Session:
         if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this user's session")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not authorized to access this user's session")
         # Connect to managed session if agent_engine_id is set.
         app_name = agent_engine_id if agent_engine_id else app_name
 
@@ -254,7 +265,7 @@ def get_my_fast_api_app(
             agent_dir,
             app_name,
             eval_set_id + _EVAL_SET_FILE_EXTENSION,
-            )
+        )
 
     @app.post(
         "/apps/{app_name}/eval_sets/{eval_set_id}",
@@ -283,7 +294,8 @@ def get_my_fast_api_app(
 
         if not os.path.exists(new_eval_set_path):
             # Write the JSON string to the file
-            logger.info("Eval set file doesn't exist, we will create a new one.")
+            logger.info(
+                "Eval set file doesn't exist, we will create a new one.")
             with open(new_eval_set_path, "w") as f:
                 empty_content = json.dumps([], indent=2)
                 f.write(empty_content)
@@ -299,7 +311,8 @@ def get_my_fast_api_app(
         for file in os.listdir(eval_set_file_path):
             if file.endswith(_EVAL_SET_FILE_EXTENSION):
                 eval_sets.append(
-                    os.path.basename(file).removesuffix(_EVAL_SET_FILE_EXTENSION)
+                    os.path.basename(file).removesuffix(
+                        _EVAL_SET_FILE_EXTENSION)
                 )
 
         return sorted(eval_sets)
@@ -427,8 +440,9 @@ def get_my_fast_api_app(
 
     @app.delete("/apps/{app_name}/users/{user_id}/sessions/{session_id}")
     def delete_session(app_name: str, user_id: str, session_id: str,
-                          current_user: DBUser = Depends(get_current_active_user) # Add dependency 
-        ):
+                       current_user: DBUser = Depends(
+                           get_current_active_user)  # Add dependency
+                       ):
         # Connect to managed session if agent_engine_id is set.
         app_name = agent_engine_id if agent_engine_id else app_name
         session_service.delete_session(
@@ -436,7 +450,6 @@ def get_my_fast_api_app(
         )
         logger.info("Session deleted: %s", session_id)
         return {"message": "Session deleted"}
-    
 
     @app.get(
         "/apps/{app_name}/users/{user_id}/sessions/{session_id}/artifacts/{artifact_name}",
@@ -448,10 +461,12 @@ def get_my_fast_api_app(
             session_id: str,
             artifact_name: str,
             version: Optional[int] = Query(None),
-            current_user: DBUser = Depends(get_current_active_user) # Add dependency
+            current_user: DBUser = Depends(
+                get_current_active_user)  # Add dependency
     ) -> Optional[types.Part]:
         if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this user's artifact")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not authorized to access this user's artifact")
         app_name = agent_engine_id if agent_engine_id else app_name
         artifact = artifact_service.load_artifact(
             app_name=app_name,
@@ -474,10 +489,12 @@ def get_my_fast_api_app(
             session_id: str,
             artifact_name: str,
             version_id: int,
-            current_user: DBUser = Depends(get_current_active_user) # Add dependency
+            current_user: DBUser = Depends(
+                get_current_active_user)  # Add dependency
     ) -> Optional[types.Part]:
         if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this user's artifact")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not authorized to access this user's artifact")
         app_name = agent_engine_id if agent_engine_id else app_name
         artifact = artifact_service.load_artifact(
             app_name=app_name,
@@ -549,7 +566,8 @@ def get_my_fast_api_app(
                 new_message=req.new_message,
             )
         ]
-        logger.info("Generated %s events in agent run: %s", len(events), events)
+        logger.info("Generated %s events in agent run: %s",
+                    len(events), events)
         return events
 
     @app.post("/run_sse")
@@ -575,8 +593,10 @@ def get_my_fast_api_app(
                         run_config=RunConfig(streaming_mode=stream_mode),
                 ):
                     # Format as SSE data
-                    sse_event = event.model_dump_json(exclude_none=True, by_alias=True)
-                    logger.info("Generated event in agent run streaming: %s", sse_event)
+                    sse_event = event.model_dump_json(
+                        exclude_none=True, by_alias=True)
+                    logger.info(
+                        "Generated event in agent run streaming: %s", sse_event)
                     yield f"data: {sse_event}\n\n"
             except Exception as e:
                 logger.exception("Error in event_generator: %s", e)
@@ -595,10 +615,12 @@ def get_my_fast_api_app(
     )
     async def get_event_graph(
             app_name: str, user_id: str, session_id: str, event_id: str,
-            current_user: DBUser = Depends(get_current_active_user) # Add dependency
+            current_user: DBUser = Depends(
+                get_current_active_user)  # Add dependency
     ):
         if current_user.id != user_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access this user's session")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                detail="Not authorized to access this user's session")
         # Connect to managed session if agent_engine_id is set.
         app_id = agent_engine_id if agent_engine_id else app_name
         session = session_service.get_session(
@@ -653,50 +675,52 @@ def get_my_fast_api_app(
             modalities: List[Literal["TEXT", "AUDIO"]] = Query(
                 default=["TEXT", "AUDIO"]
             ),  # Only allows "TEXT" or "AUDIO"
-            token: Optional[str] = Query(None), # Make token optional initially
+            # Make token optional initially
+            token: Optional[str] = Query(None),
 
     ) -> None:
-        authenticated_user_id: Optional[str] = None # Initialize
+        authenticated_user_id: Optional[str] = None  # Initialize
         token_payload: Optional[TokenPayload] = None
 
         # --- WebSocket Authentication Step ---
         if not token:
-             print("WS Error: Connection attempt without token.")
-             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Missing authentication token")
-             return
+            print("WS Error: Connection attempt without token.")
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Missing authentication token")
+            return
 
         try:
             # Verify the token provided in the query parameter
             token_payload = verify_internal_token(token)
-            authenticated_user_id = token_payload.sub # Get user ID FROM THE TOKEN
+            authenticated_user_id = token_payload.sub  # Get user ID FROM THE TOKEN
             if not authenticated_user_id:
-                 # Should be caught by verify_internal_token, but defensive check
-                 raise credentials_exception
+                # Should be caught by verify_internal_token, but defensive check
+                raise credentials_exception
 
-            print(f"WS Authentication successful for user: {authenticated_user_id}")
-            await websocket.accept() # Accept connection ONLY after successful auth
+            print(
+                f"WS Authentication successful for user: {authenticated_user_id}")
+            await websocket.accept()  # Accept connection ONLY after successful auth
 
         except HTTPException as auth_exc:
             print(f"WS Auth Error: {auth_exc.detail}")
             reason = f"Authentication failed: {auth_exc.detail}"
-            close_code = status.WS_1008_POLICY_VIOLATION # Generic policy violation
+            close_code = status.WS_1008_POLICY_VIOLATION  # Generic policy violation
             if auth_exc.status_code == status.HTTP_401_UNAUTHORIZED:
-                 if "expired" in auth_exc.detail.lower():
-                     reason = "Token has expired" # More specific reason
-                 else:
-                     reason = "Invalid token"
+                if "expired" in auth_exc.detail.lower():
+                    reason = "Token has expired"  # More specific reason
+                else:
+                    reason = "Invalid token"
             await websocket.close(code=close_code, reason=reason)
-            return # Stop processing if auth fails
+            return  # Stop processing if auth fails
         except Exception as e:
             # Catch unexpected errors during verification
             print(f"WS Unexpected Auth Error: {e}")
             await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason="Internal error during authentication")
-            return # Stop processing
+            return  # Stop processing
 
         # --- Proceed only if authenticated ---
         if not authenticated_user_id:
-             await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason="Authentication failed unexpectedly")
-             return        
+            await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason="Authentication failed unexpectedly")
+            return
         # --- WebSocket Authentication Finished ---
         # Connect to managed session if agent_engine_id is set.
         app_id = agent_engine_id if agent_engine_id else app_name
@@ -725,7 +749,8 @@ def get_my_fast_api_app(
                 while True:
                     data = await websocket.receive_text()
                     # Validate and send the received message to the live queue.
-                    live_request_queue.send(LiveRequest.model_validate_json(data))
+                    live_request_queue.send(
+                        LiveRequest.model_validate_json(data))
             except ValidationError as ve:
                 logger.error("Validation error in process_messages: %s", ve)
 
@@ -746,7 +771,8 @@ def get_my_fast_api_app(
         except Exception as e:
             error_message = str(e)
             error_type = type(e).__name__
-            logger.exception("Error during live websocket communication: %s", e)
+            logger.exception(
+                "Error during live websocket communication: %s", e)
             try:
                 # 向前端发送格式化的错误消息
                 error_payload = {
@@ -760,7 +786,8 @@ def get_my_fast_api_app(
                 # 假设 websocket 是可用的且定义在更高层级的代码中
                 await websocket.send_json(error_payload)
             except Exception as send_error:
-                logger.error("Failed to send error message to client: %s", send_error)
+                logger.error(
+                    "Failed to send error message to client: %s", send_error)
         finally:
             for task in pending:
                 task.cancel()
