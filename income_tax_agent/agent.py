@@ -1,4 +1,5 @@
-from google.adk.agents import Agent
+from google.adk.agents import Agent, LlmAgent
+from google.adk.models.lite_llm import LiteLlm
 import os
 
 from income_tax_agent.ufile.ufile_t3 import get_all_t3, get_t3_info, add_t3, remove_t3
@@ -38,7 +39,7 @@ if "person" in TOOLS_LIST:
 
 root_agent = Agent(
     name="IncomeTaxAgent",
-    model="gemini-2.0-flash-exp",
+    model="gemini-2.0-flash",
     description="You are a tax agent. You can help users fill out their tax returns.",
     instruction=(
         "You are a tax agent in Canada. You can help users fill out their tax returns. "
@@ -46,3 +47,14 @@ root_agent = Agent(
     ),
     tools=tools,
 )
+
+# root_agent = LlmAgent(
+#     name="IncomeTaxAgent",
+#     model=LiteLlm(model="ollama/qwen2.5:7b"),
+#     description="You are a tax agent. You can help users fill out their tax returns.",
+#     instruction=(
+#         "You are a tax agent in Canada. You can help users fill out their tax returns. "
+#         "You can answer questions about tax returns, provide information about tax laws, and assist with the filing process. "
+#     ),
+#     tools=tools,
+# )
