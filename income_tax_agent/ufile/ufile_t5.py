@@ -1,5 +1,6 @@
 from typing import Optional
 from income_tax_agent import playwright_helper
+from income_tax_agent.ufile.ufile_info import get_slip_info, format_to_string
 
 
 async def get_all_t5() -> list | str:
@@ -46,8 +47,8 @@ async def add_t5(name: str) -> str:
     await page.get_by_role("button", name="Add Item. T5 - Investment").click()
     await page.wait_for_timeout(1000)  # Wait for the UI to update
     # Input the name of the T5 slip
-    await page.get_by_role(
-        "textbox", name="Enter Text. This T5 slip was").fill(name)
+    await page.get_by_role("textbox", name="Enter Text. This T5 slip was").fill(name)
+    await page.get_by_role("textbox", name="Enter Text. This T5 slip was").press("Tab")
 
     return f"Successfully added T5 slip: {name}"
 
@@ -189,53 +190,9 @@ async def get_t5_info(name: str) -> str | list[dict]:
                          - 'box': The box number (if available)
                          - 'value': The current value in the input field (if any)
     """
-    page = await playwright_helper.get_page()
-    if page is None:
-        return "Ufile didn't load, please try again"
-
-    # Find the T5 element with the given name
-    t5_elements = page.locator('div.tocLabel').filter(has_text=name)
-    count = await t5_elements.count()
-
-    if count == 0:
-        return f"T5 slip with name '{name}' not found."
-
-    # Give the page a moment to load the T5 content
-    await page.wait_for_timeout(1000)
-
-    # Find all fieldsets that contain input fields (similar to the test.html structure)
-    fieldsets = page.locator('fieldset')
-    count = await fieldsets.count()
-
-    # Create a new list to store the formatted field data
-    formatted_fields = []
-
-    # Process each fieldset individually
-    for i in range(count):
-        fieldset = fieldsets.nth(i)
-        item = {}
-
-        # Try to find the title/label
-        title_element = fieldset.locator('.int-label').first
-        title = await title_element.inner_text() if await title_element.count() > 0 else ""
-
-        # Try to find the box number
-        box_element = fieldset.locator('.boxNumberContent').first
-        box = await box_element.inner_text() if await box_element.count() > 0 else ""
-
-        # Try to find the input value
-        input_element = fieldset.locator('input[type="text"]').first
-        value = await input_element.input_value() if await input_element.count() > 0 else ""
-
-        # Only add the field if we found a title
-        if title:
-            item['title'] = title.strip()
-            item['box'] = box.strip() if box else None
-            item['value'] = value.strip() if value else None
-
-            formatted_fields.append(item)
-
-    return formatted_fields
+    formatted_fields = await get_slip_info(name, include_null_values=False, include_title=True)
+    slip_type = name.split(":")[0].strip()
+    return await format_to_string(slip_type, formatted_fields)
 
 
 if __name__ == "__main__":

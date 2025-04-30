@@ -1,4 +1,5 @@
 from income_tax_agent import playwright_helper
+from income_tax_agent.ufile.ufile_info import get_slip_info, format_to_string
 
 
 async def get_all_t3() -> list | str:
@@ -36,62 +37,15 @@ async def get_t3_info(name: str) -> str | list[dict]:
 
     Returns:
         str | list[dict]: Either an error message as a string if the operation fails,
-                          or a list of dictionaries with each containing:
-                          - 'title': The label of the input field
-                          - 'box': The box number (if available)
-                          - 'value': The current value in the input field (if any)
+                        or a list of dictionaries with each containing:
+                        - 'title': The label of the input field
+                        - 'box': A list of box numbers (if available)
+                        - 'value': The current value in the input field (if any)
     """
-    page = await playwright_helper.get_page()
-    if page is None:
-        return "Ufile didn't load, please try again"
+    formatted_fields = await get_slip_info(name, include_null_values=False, include_title=True)
+    slip_type = name.split(":")[0].strip()
 
-    # Use a more specific selector that targets only the div elements containing "T3:" text
-    # This targets the exact elements containing T3 labels
-    t3_elements = page.locator('div.tocLabel').filter(has_text='T3:')
-    all_t3s = await t3_elements.all()
-
-    t3_found = False
-    for t3 in all_t3s:
-        if name in await t3.inner_text():
-            await t3.click()
-            t3_found = True
-            break
-
-    if not t3_found:
-        return f"T3 slip '{name}' not found."
-
-    await page.wait_for_timeout(1000)  # Wait for the page to load
-
-    fieldsets = page.locator('fieldset')
-    count = await fieldsets.count()
-
-    formatted_fields = []
-
-    for i in range(count):
-        fieldset = fieldsets.nth(i)
-        item = {}
-
-        # Try to find the title/label
-        title_element = fieldset.locator('.int-label').first
-        title = await title_element.inner_text() if await title_element.count() > 0 else ""
-
-        # Try to find the box number
-        box_element = fieldset.locator('.boxNumberContent').first
-        box = await box_element.inner_text() if await box_element.count() > 0 else ""
-
-        # Try to find the input value
-        input_element = fieldset.locator('input[type="text"]').first
-        value = await input_element.input_value() if await input_element.count() > 0 else ""
-
-        # Only add the field if we found a title
-        if title:
-            item['title'] = title.strip()
-            item['box'] = box.strip() if box else None
-            item['value'] = value.strip() if value else None
-
-            formatted_fields.append(item)
-
-    return formatted_fields
+    return await format_to_string(slip_type, formatted_fields)
 
 
 async def add_t3(name: str) -> str:
@@ -113,6 +67,7 @@ async def add_t3(name: str) -> str:
     await page.get_by_role("button", name="Add Item. T3 - Trust income").click()
     await page.wait_for_timeout(1000)
     await page.get_by_role("textbox", name="Enter Text. This T3 slip was issued by. ").fill(name)
+    await page.get_by_role("textbox", name="Enter Text. This T3 slip was issued by. ").press("Tab")
 
     return f"New T3 slip '{name}' created successfully."
 
@@ -161,10 +116,10 @@ if __name__ == "__main__":
     import asyncio
 
     async def main():
-        t3_slips = await get_all_t3()
-        print(t3_slips)
-        # result = await get_t3_info("T3: stanly")
-        # print(result)
+        # t3_slips = await get_all_t3()
+        # print(t3_slips)
+        result = await get_t3_info("T3: FIDELITY INVESTMENTS CANADA#24")
+        print(result)
         # newT3 = await add_t3("BOC")
         # print(newT3)
 

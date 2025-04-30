@@ -30,6 +30,8 @@ async def get_slip_info(name: str, include_null_values=False, include_title=Fals
     if count == 0:
         return f"Slip with name '{name}' not found."
 
+    await slip_elements.first.click()
+
     # Give the page a moment to load the T5 content
     await page.wait_for_timeout(1000)
     # Find all fieldsets that contain input fields (similar to the test.html structure)
@@ -78,13 +80,48 @@ async def get_slip_info(name: str, include_null_values=False, include_title=Fals
     return formatted_fields
 
 
+async def format_to_string(slip_type: str, formatted_fields: list[dict]) -> str:
+    """
+    Format the slip information into a readable string.
+
+    Args:
+        slip_type: The type of slip (e.g., "T3", "T5")
+        formatted_fields: List of dictionaries containing box numbers and values
+
+    Returns:
+        A formatted string representation of the slip data
+    """
+    # Extract the issuer information (first item with no box number)
+    result = f"{slip_type}: "
+
+    # Find the issuer (first item with empty box list)
+    issuer = None
+    for field in formatted_fields:
+        if not field['box']:
+            issuer = field['value']
+            break
+
+    if issuer:
+        result += f"{issuer}"
+
+    # Add all box and value pairs
+    for field in formatted_fields:
+        if field['box']:
+            box_str = " ".join(field['box'])
+            if field['value']:
+                result += f", {box_str}: {field['value']}"
+
+    return result
+
+
 if __name__ == "__main__":
     import asyncio
 
     async def main():
         # Example usage
-        name = "T3: CIBC MONEY MARKET FUND#01"
-        slip_info = await get_slip_info(name)
+        name = "T3: RBC INVESTOR SERVICES TRUST#11"
+        slip_info = await get_slip_info(name, include_title=True)
         print(slip_info)
+        print(await format_to_string(name.split(":")[0].strip(), slip_info))
 
     asyncio.run(main())
